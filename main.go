@@ -98,42 +98,20 @@ func main() {
 
 	})
 
-	router.GET("/getall", func(c *gin.Context) {
-		db := dbConn()
-		selDB, err := db.Query("SELECT * FROM product")
-		if err != nil {
-			panic(err.Error())
-		}
+	
 
-		var id, name, price, quality string
-		for selDB.Next() {
-
-			err = selDB.Scan(&id, &name, &price, &quality)
-			c.JSON(200, gin.H{
-				"id":      id,
-				"name":    name,
-				"price":   price,
-				"quality": quality,
-			})
-			fmt.Printf("name: %s; price: %s; quality: %s", name, price, quality)
+	router.DELETE("/delete", func(c *gin.Context) {
+		var p product
+		if c.BindJSON(&p) == nil {
+			db := dbConn()
+			delForm, err := db.Prepare("DELETE FROM product WHERE name=?")
 			if err != nil {
 				panic(err.Error())
 			}
+			delForm.Exec(p.Name)
+			log.Println("DELETE")
+			defer db.Close()
 		}
-		//fmt.Printf("name: %s; price: %s; quality: %s", name, price, quality)
-
-	})
-
-	router.DELETE("/delete", func(c *gin.Context) {
-		name := c.Query("name")
-		db := dbConn()
-		delForm, err := db.Prepare("DELETE FROM product WHERE name=?")
-		if err != nil {
-			panic(err.Error())
-		}
-		delForm.Exec(name)
-		log.Println("DELETE")
-		defer db.Close()
 
 	})
 
